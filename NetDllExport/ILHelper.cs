@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
-using System.Diagnostics;
 
 namespace NetDllExport
 {
@@ -17,23 +15,30 @@ namespace NetDllExport
 
 		private static string GetIldasmPath()
 		{
-			RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SDKs\.NETFramework\v2.0");
+			string fileName;
+
+			// Try all Windows SDKs that may contain the tool, newest first
+			fileName = FindIldasm(@"SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.1A", "InstallationFolder");
+			if (fileName != null) return fileName;
+			fileName = FindIldasm(@"SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A", "InstallationFolder");
+			if (fileName != null) return fileName;
+
+			throw new Exception("ILdasm tool could not be found.");
+		}
+
+		private static string FindIldasm(string regKey, string regValue)
+		{
+			RegistryKey key = Registry.LocalMachine.OpenSubKey(regKey);
 			if (key != null)
 			{
-				return Path.Combine((string) key.GetValue("InstallationFolder") + "bin", "ildasm.exe");
-			}
-			else
-			{
-				key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SDKs\Windows");
-				if (key != null)
+				string path = (string) key.GetValue(regValue);
+				string fileName = Path.Combine(path, "bin", "ildasm.exe");
+				if (File.Exists(fileName))
 				{
-					return Path.Combine((string) key.GetValue("CurrentInstallFolder") + "bin", "ildasm.exe");
-				}
-				else
-				{
-					throw new Exception("No .NET SDK path found in the Windows registry.");
+					return fileName;
 				}
 			}
+			return null;
 		}
 
 		public static void DisassembleFile(string inFile, string ilFile)
@@ -44,7 +49,7 @@ namespace NetDllExport
 			}
 
 			File.Delete(ilFile);
-			
+
 			Process proc = new Process();
 			proc.StartInfo.FileName = "\"" + GetIldasmPath() + "\"";
 			proc.StartInfo.Arguments = "\"" + inFile + "\" /out=\"" + ilFile + "\" /nobar";
@@ -82,7 +87,6 @@ namespace NetDllExport
 			{
 				throw new Exception("File \"" + ilFile + "\" could not be assembled.");
 			}
-
 			return stdout;
 		}
 	}

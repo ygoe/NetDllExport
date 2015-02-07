@@ -1,18 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
-using Unclassified;
-using System.Runtime.InteropServices;
 using System.IO;
-using Microsoft.Win32;
-using System.Diagnostics;
+using System.Reflection;
 using System.Text.RegularExpressions;
+using Unclassified;
 
 namespace NetDllExport
 {
-	class Program
+	internal class Program
 	{
-		static int Main(string[] args)
+		private static int Main(string[] args)
 		{
 			CommandLineParser clp = new CommandLineParser();
 			clp.AddKnownOption("h", "help");
@@ -31,11 +27,19 @@ namespace NetDllExport
 
 			if (clp.IsOptionSet("h") || string.IsNullOrEmpty(inFile))
 			{
+				string productVersion = "";
+
+				object[] customAttributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof(AssemblyFileVersionAttribute), false);
+				if (customAttributes != null && customAttributes.Length > 0)
+				{
+					productVersion = ((AssemblyFileVersionAttribute) customAttributes[0]).Version;
+				}
+
 				Console.WriteLine("NetDllExport");
 				Console.WriteLine("Exports static methods in a managed DLL as library functions that can be");
 				Console.WriteLine("called from an unmanaged Windows application.");
-				Console.WriteLine("Version 1.2.1 (2010-04-10)");
-				Console.WriteLine("Copyright 2010 by Yves Goergen, http://unclassified.de/");
+				Console.WriteLine("Version " + productVersion);
+				Console.WriteLine("Copyright by Yves Goergen, http://unclassified.software/apps/netdllexport");
 				Console.WriteLine("");
 				Console.WriteLine("No input file specified.");
 				Console.WriteLine("");
@@ -166,9 +170,11 @@ namespace NetDllExport
 					".data VT_" + i.ToString("00") + " = int32(0)" + Environment.NewLine;
 			}
 
+			// Change to x86 - should better be done by the source assembly already.
+			// corflags bit meanings: http://stackoverflow.com/a/13767541/143684
 			ilCode = Regex.Replace(
 				ilCode,
-				"^.corflags 0x00000001 .*$",
+				"^.corflags 0x0000000[123] .*$",
 				".corflags 0x00000002" + Environment.NewLine + vtCode,
 				RegexOptions.Multiline);
 
