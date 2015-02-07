@@ -1,0 +1,9 @@
+NetDllExport
+Version Changes
+---------------
+
+2010-04-05 1.0
+Initial release.
+
+2010-04-06 1.1
+Added support for .NET 3.5 SDK path in the registry.

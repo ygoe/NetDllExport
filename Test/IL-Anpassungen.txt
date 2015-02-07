@@ -1,0 +1,23 @@
+Finde: .corflags
+Ersetze durch:
+.corflags 0x00000002
+
+Füge in folgenden Zeilen ein:
+.vtfixup [1] int32 fromunmanaged at VT_01
+.data VT_01 = int32(0)
+.vtfixup [1] int32 fromunmanaged at VT_02
+.data VT_02 = int32(0)
+.vtfixup [1] int32 fromunmanaged at VT_03
+.data VT_03 = int32(0)
+.vtfixup [1] int32 fromunmanaged at VT_04
+.data VT_04 = int32(0)
+.vtfixup [1] int32 fromunmanaged at VT_05
+.data VT_05 = int32(0)
+
+Finde zu exportierende Funktion
+Füge direkt nach öffnender {-Klammer ein:
+.vtentry 1 : 1
+.export [1] as AddInteger
+
+(erste 1 in jeder Zeile fortlaufend nummerieren)
+("AddInteger" durch Funktionsalias ersetzen)
