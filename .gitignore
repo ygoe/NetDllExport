@@ -2,9 +2,13 @@
 Setup/bin/
 
 # User-specific files
+.vs/
 *.suo
 *.user
 *.sln.docstates
+
+# Downloaded NuGet packages
+/packages/*/
 
 # Build results
 [Dd]ebug/
